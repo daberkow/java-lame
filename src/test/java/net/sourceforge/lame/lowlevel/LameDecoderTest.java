@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,8 +37,9 @@ public class LameDecoderTest extends AbstractLameTest {
   @Test
   public void shouldConvertMp3ToWave() throws IOException, URISyntaxException {
     // given
-    URL mp3TestFileUrl = LameDecoderTest.class.getResource("/test.mp3");
-    File mp3TestFile = new File(mp3TestFileUrl.toURI());
+    File mp3TestFile = new File("C:\\Users\\Dan\\Downloads\\ADV5671687285.mp3");
+//    URL mp3TestFileUrl = LameDecoderTest.class.getResource("/test.mp3");
+//    File mp3TestFile = new File(mp3TestFile);
 
     // when
     byte[] wavBytes = decodeFromMp3(mp3TestFile);
@@ -46,6 +48,33 @@ public class LameDecoderTest extends AbstractLameTest {
     // then
     assertTrue(compareByteArrayWithHexString(firstTwoBytesOf(wavBytes), WAVE_MAGIC_NUMBER));
     assertEquals(WAV_TRACK_LENGTH, wavBytes.length);
+  }
+
+  @Test
+  public void shouldConvertMp3ToWaveInMem() throws IOException, URISyntaxException {
+    // given
+    File mp3TestFile = new File("C:\\Users\\Dan\\Downloads\\ADV5671687285.mp3");
+
+    LameDecoder decoder = new LameDecoder(Files.readAllBytes(mp3TestFile.toPath()));
+
+    ByteBuffer buffer = ByteBuffer.allocate(decoder.getBufferSize());
+    ByteArrayOutputStream pcm = new ByteArrayOutputStream();
+
+    while (decoder.decode(buffer)) {
+      pcm.write(buffer.array());
+    }
+
+    byte[] wavBytes = asWav(pcm.toByteArray(), decoder.getSampleRate(), decoder.getChannels());
+
+    // when
+//    byte[] wavBytes = decodeFromMp3(mp3TestFile);
+    File temp = File.createTempFile("audio_peaks_lame_mem_", ".wav");
+    Files.write(temp.toPath(), wavBytes);
+//    writeToFile(wavBytes, "build/test_output.wav"); // Just for the records...
+
+    // then
+//    assertTrue(compareByteArrayWithHexString(firstTwoBytesOf(wavBytes), WAVE_MAGIC_NUMBER));
+//    assertEquals(WAV_TRACK_LENGTH, wavBytes.length);
   }
 
 

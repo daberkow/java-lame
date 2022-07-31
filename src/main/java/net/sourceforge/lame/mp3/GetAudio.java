@@ -98,9 +98,28 @@ public class GetAudio {
   private RandomAccessFile musicin;
   private MPGLib.mpstr_tag hip;
 
+  private boolean isInMemory = false;
+
+  private byte[] inMemoryStoredData;
+
+  private int inMemoryLoc = 0;
+
   public void setModules(Parse parse2, MPGLib mpg2) {
     parse = parse2;
     mpg = mpg2;
+  }
+
+  public final void initInData(final LameGlobalFlags gfp,
+                               final byte[] inData, final FrameSkip enc) {
+    /* open the input file */
+    count_samples_carefully = false;
+    num_samples_read = 0;
+    pcmbitwidth = parse.in_bitwidth;
+    pcmswapbytes = parse.swapbytes;
+    pcm_is_unsigned_8bit = !parse.in_signed;
+    musicin = OpenSndData(gfp, inData, enc);
+    isInMemory = true;
+    inMemoryStoredData = inData;
   }
 
   public final void initInFile(final LameGlobalFlags gfp,
@@ -195,8 +214,14 @@ public class GetAudio {
     if (is_mpeg_file_format(parse.getInputFormat())) {
       if (buffer != null)
         samples_read = read_samples_mp3(gfp, musicin, buf_tmp16);
-      else
-        samples_read = read_samples_mp3(gfp, musicin, buffer16);
+      else {
+        if (isInMemory) {
+          samples_read = read_samples_mp3_inMemory(gfp, buffer16);
+        } else {
+          samples_read = read_samples_mp3(gfp, musicin, buffer16);
+        }
+      }
+
       if (samples_read < 0) {
         return samples_read;
       }
@@ -295,6 +320,39 @@ public class GetAudio {
         System.err
             .printf("Error: sample frequency has changed in %s - not supported\n",
                 type_name);
+      }
+      out = -1;
+    }
+    return out;
+  }
+
+  int read_samples_mp3_inMemory(final LameGlobalFlags gfp, float mpg123pcm[][]) {
+    int out;
+    // inMemoryStoredData
+    out = lame_decode_frommemory(mpg123pcm[0], mpg123pcm[1], parse.getMp3InputData());
+    /*
+     * out < 0: error, probably EOF out = 0: not possible with
+     * lame_decode_fromfile() ??? out > 0: number of output samples
+     */
+    if (out < 0) {
+      Arrays.fill(mpg123pcm[0], (short) 0);
+      Arrays.fill(mpg123pcm[1], (short) 0);
+      return 0;
+    }
+
+    if (gfp.getInNumChannels() != parse.getMp3InputData().stereo) {
+      if (parse.silent < 10) {
+        System.err
+                .printf("Error: number of channels has changed in %s - not supported\n",
+                        type_name);
+      }
+      out = -1;
+    }
+    if (gfp.getInSampleRate() != parse.getMp3InputData().samplerate) {
+      if (parse.silent < 10) {
+        System.err
+                .printf("Error: sample frequency has changed in %s - not supported\n",
+                        type_name);
       }
       out = -1;
     }
@@ -864,6 +922,59 @@ public class GetAudio {
     return musicin;
   }
 
+  private RandomAccessFile OpenSndData(final LameGlobalFlags gfp,
+                                       final byte[] inData, final FrameSkip enc) {
+
+    /* set the defaults from info in case we cannot determine them from file */
+    gfp.num_samples = -1;
+
+    if (is_mpeg_file_format(parse.getInputFormat())) {
+      if (-1 == lame_decode_initData(inData, parse.getMp3InputData(), enc)) {
+        throw new RuntimeException(String.format("Error reading headers in mp3 input data."));
+      }
+      gfp.setInNumChannels(parse.getMp3InputData().stereo);
+      gfp.setInSampleRate(parse.getMp3InputData().samplerate);
+      gfp.num_samples = parse.getMp3InputData().getNumSamples();
+    } else if (parse.getInputFormat() == SoundFileFormat.sf_ogg) {
+      throw new RuntimeException("sorry, vorbis support in LAME is deprecated.");
+    } else if (parse.getInputFormat() == SoundFileFormat.sf_raw) {
+      /* assume raw PCM */
+      if (parse.silent < 10) {
+        System.out.println("Assuming raw pcm input file");
+        if (parse.swapbytes)
+          System.out.printf(" : Forcing byte-swapping\n");
+        else
+          System.out.printf("\n");
+      }
+      pcmswapbytes = parse.swapbytes;
+    } else {
+      parse.setInputFormat(parse_file_header(gfp, musicin));
+    }
+    if (parse.getInputFormat() == SoundFileFormat.sf_unknown) {
+      throw new RuntimeException("Unknown sound format!");
+    }
+
+    if (gfp.num_samples == -1) {
+      double flen = inData.length;
+      /* try to figure out num_samples */
+      if (flen >= 0) {
+        /* try file size, assume 2 bytes per sample */
+        if (is_mpeg_file_format(parse.getInputFormat())) {
+          if (parse.getMp3InputData().bitrate > 0) {
+            double totalseconds = (flen * 8.0 / (1000.0 * parse.getMp3InputData().bitrate));
+            int tmp_num_samples = (int) (totalseconds * gfp.getInSampleRate());
+
+            gfp.num_samples = tmp_num_samples;
+            parse.getMp3InputData().setNumSamples(tmp_num_samples);
+          }
+        } else {
+          gfp.num_samples = (int) (flen / (2 * gfp.getInNumChannels()));
+        }
+      }
+    }
+    return musicin;
+  }
+
   private boolean check_aid(final byte[] header) {
     return new String(header, ISO_8859_1).startsWith("AiD\1");
   }
@@ -874,6 +985,9 @@ public class GetAudio {
    * stream
    */
   private boolean is_syncword_mp123(final byte[] headerptr) {
+//    if (headerptr.length < 4) {
+//      return false;
+//    }
     int p = 0;
 
     if ((headerptr[p + 0] & 0xFF) != 0xFF) {
@@ -958,6 +1072,7 @@ public class GetAudio {
     int len = 4;
     try {
       fd.readFully(buf, 0, len);
+      System.out.println("pointer: " + fd.getFilePointer()  + " just read " + len);
     } catch (IOException e) {
       e.printStackTrace();
       return -1; /* failed */
@@ -971,6 +1086,7 @@ public class GetAudio {
       len = 6;
       try {
         fd.readFully(buf, 0, len);
+        System.out.println("pointer: " + fd.getFilePointer()  + " just read " + len);
       } catch (IOException e) {
         e.printStackTrace();
         return -1; /* failed */
@@ -980,6 +1096,7 @@ public class GetAudio {
       buf[4] &= 127;
       buf[5] &= 127;
       len = (((((buf[2] << 7) + buf[3]) << 7) + buf[4]) << 7) + buf[5];
+      System.out.println("Skipping: " + len);
       try {
         fd.skipBytes(len);
       } catch (IOException e) {
@@ -989,6 +1106,7 @@ public class GetAudio {
       len = 4;
       try {
         fd.readFully(buf, 0, len);
+        System.out.println("pointer: " + fd.getFilePointer()  + " just read " + len);
       } catch (IOException e) {
         e.printStackTrace();
         return -1; /* failed */
@@ -997,6 +1115,7 @@ public class GetAudio {
     if (check_aid(buf)) {
       try {
         fd.readFully(buf, 0, 2);
+        System.out.println("pointer: " + fd.getFilePointer()  + " just read " + 2);
       } catch (IOException e) {
         e.printStackTrace();
         return -1; /* failed */
@@ -1008,6 +1127,7 @@ public class GetAudio {
 			/* skip rest of AID, except for 6 bytes we have already read */
       try {
         fd.skipBytes(aid_header - 6);
+        System.out.println("Skipping: " + (aid_header - 6));
       } catch (IOException e) {
         e.printStackTrace();
         return -1; /* failed */
@@ -1016,24 +1136,39 @@ public class GetAudio {
 			/* read 4 more bytes to set up buffer for MP3 header check */
       try {
         fd.readFully(buf, 0, len);
+        System.out.println("pointer: " + fd.getFilePointer() + " just read " + len);
       } catch (IOException e) {
         e.printStackTrace();
         return -1; /* failed */
       }
+    } else {
+      System.out.println("Skipping checkaid");
     }
     len = 4;
     while (!is_syncword_mp123(buf)) {
+      for (byte single : buf) {
+          System.out.print(String.valueOf(single));
+      }
+      System.out.println("&");
+      System.out.println(buf.length);
       int i;
       for (i = 0; i < len - 1; i++)
         buf[i] = buf[i + 1];
       try {
+        System.out.println("pre-pointer: " + fd.getFilePointer());
+        System.out.println("offset: " + (len - 1) + " len " + 1);
         fd.readFully(buf, len - 1, 1);
+        for (byte single : buf) {
+          System.out.print(String.valueOf(single));
+        }
+        System.out.println();
+        System.out.println("pointer: " + fd.getFilePointer());
       } catch (IOException e) {
         e.printStackTrace();
         return -1; /* failed */
       }
     }
-
+    System.out.println(" out of loop pointer: " );
     if ((buf[2] & 0xf0) == 0) {
       if (parse.silent < 10) {
         System.out.println("Input file is freeformat.");
@@ -1056,6 +1191,7 @@ public class GetAudio {
     while (!mp3data.header_parsed) {
       try {
         fd.readFully(buf);
+        System.out.println(" header parsed pointer: " + fd.getFilePointer());
       } catch (IOException e) {
         e.printStackTrace();
         return -1; /* failed */
@@ -1086,6 +1222,188 @@ public class GetAudio {
     return 0;
   }
 
+  private int lame_decode_initData(byte[] dataIn,
+                                   final MP3Data mp3data, final FrameSkip enc) {
+    byte buf[] = new byte[100];
+    float[] pcm_l = new float[1152], pcm_r = new float[1152];
+    boolean freeformat = false;
+
+    if (hip != null) {
+      mpg.hip_decode_exit(hip);
+    }
+    hip = mpg.hip_decode_init();
+
+    int len = 4;
+//    try {
+//      fd.readFully(buf, 0, len);
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//      return -1; /* failed */
+//    }
+    buf = Arrays.copyOf(dataIn, len);
+    inMemoryLoc = 0 + len;
+    System.out.println("Pointer: " + inMemoryLoc);
+    if (buf[0] == 'I' && buf[1] == 'D' && buf[2] == '3') {
+      if (parse.silent < 10) {
+        System.out
+                .println("ID3v2 found. "
+                        + "Be aware that the ID3 tag is currently lost when transcoding.");
+      }
+      len = 6;
+//      try {
+//        fd.readFully(buf, 0, len);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return -1; /* failed */
+//      }
+      buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + len);
+      inMemoryLoc += len;
+      System.out.println("Pointer: " + inMemoryLoc);
+//      buf = Arrays.copyOf(dataIn, len);
+      buf[2] &= 127;
+      buf[3] &= 127;
+      buf[4] &= 127;
+      buf[5] &= 127;
+      len = (((((buf[2] << 7) + buf[3]) << 7) + buf[4]) << 7) + buf[5];
+      System.out.println("Skipping: " + len);
+//      try {
+//        fd.skipBytes(len);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return -1; /* failed */
+//      }
+      inMemoryLoc += len;
+
+      len = 4;
+//      try {
+//        fd.readFully(buf, 0, len);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return -1; /* failed */
+//      }
+      buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + len);
+      inMemoryLoc += len;
+      System.out.println("Pointer: " + inMemoryLoc);
+    }
+    if (check_aid(buf)) {
+      System.out.println(buf);
+//      try {
+//        fd.readFully(buf, 0, 2);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return -1; /* failed */
+//      }
+      buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + 2);
+      inMemoryLoc += 2;
+      System.out.println("Pointer: " + inMemoryLoc);
+      int aid_header = (buf[0] & 0xff) + 256 * (buf[1] & 0xff);
+      if (parse.silent < 10) {
+        System.out.printf("Album ID found.  length=%d \n", aid_header);
+      }
+      /* skip rest of AID, except for 6 bytes we have already read */
+//      try {
+//        fd.skipBytes(aid_header - 6);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return -1; /* failed */
+//      }
+      inMemoryLoc = inMemoryLoc + (aid_header - 6);
+      /* read 4 more bytes to set up buffer for MP3 header check */
+//      try {
+//        fd.readFully(buf, 0, len);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return -1; /* failed */
+//      }
+      buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + len);
+      inMemoryLoc += len;
+      System.out.println("Pointer: " + inMemoryLoc);
+    } else {
+      System.out.println("Skipped checkaid");
+    }
+    len = 4;
+    while (!is_syncword_mp123(buf)) {
+      for (byte single : buf) {
+        System.out.print(String.valueOf(single));
+      }
+      System.out.println(buf.length);
+      int i;
+      for (i = 0; i < len - 1; i++)
+        buf[i] = buf[i + 1];
+//      try {
+//        fd.readFully(buf, len - 1, 1);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return -1; /* failed */
+//      }
+      System.out.println("pre Pointer: " + inMemoryLoc);
+      System.out.println("offset: " + (len - 1) + " len " + 1);
+      buf[(len - 1)] = dataIn[inMemoryLoc];
+//      buf = Arrays.copyOfRange(dataIn, loc + (len - 1), loc + (len - 1) + 1);
+      for (byte single : buf) {
+        System.out.print(String.valueOf(single));
+      }
+      inMemoryLoc += 1;
+      System.out.println("Pointer: " + inMemoryLoc);
+    }
+    System.out.println("Out of loop");
+    if ((buf[2] & 0xf0) == 0) {
+      if (parse.silent < 10) {
+        System.out.println("Input file is freeformat.");
+      }
+      freeformat = true;
+    }
+    /* now parse the current buffer looking for MP3 headers. */
+    /* (as of 11/00: mpglib modified so that for the first frame where */
+    /* headers are parsed, no data will be decoded. */
+    /* However, for freeformat, we need to decode an entire frame, */
+    /* so mp3data->bitrate will be 0 until we have decoded the first */
+    /* frame. Cannot decode first frame here because we are not */
+    /* yet prepared to handle the output. */
+    int ret = mpg.hip_decode1_headers(hip, buf, len, pcm_l, pcm_r,
+            mp3data, enc);
+    if (-1 == ret)
+      return -1;
+
+    /* repeat until we decode a valid mp3 header. */
+    // The OG code assumed a 100 byte buffer here
+    buf = new byte[100];
+    while (!mp3data.header_parsed) {
+//      try {
+//        fd.readFully(buf);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return -1; /* failed */
+//      }
+      buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + buf.length);
+      inMemoryLoc += buf.length;
+      System.out.println("Pointer: " + inMemoryLoc);
+      ret = mpg.hip_decode1_headers(hip, buf, buf.length, pcm_l, pcm_r,
+              mp3data, enc);
+      if (-1 == ret)
+        return -1;
+    }
+
+    if (mp3data.bitrate == 0 && !freeformat) {
+      if (parse.silent < 10) {
+        System.err.println("fail to sync...");
+      }
+      return lame_decode_initData(dataIn, mp3data, enc);
+    }
+
+    if (mp3data.getTotalFrames() > 0) {
+      /* mpglib found a Xing VBR header and computed nsamp & totalframes */
+    } else {
+      /*
+       * set as unknown. Later, we will take a guess based on file size
+       * ant bitrate
+       */
+      mp3data.setNumSamples(-1);
+    }
+
+    return 0;
+  }
+
   /**
    * @return -1 error n number of samples output. either 576 or 1152 depending
    * on MP3 file.
@@ -1105,6 +1423,7 @@ public class GetAudio {
 		/* read until we get a valid output frame */
     while (true) {
       try {
+        System.out.println("Scanning for frames at :" + fd.getFilePointer());
         len = fd.read(buf, 0, 1024);
       } catch (IOException e) {
         e.printStackTrace();
@@ -1127,6 +1446,57 @@ public class GetAudio {
       if (ret == -1) {
         mpg.hip_decode_exit(hip);
 				/* release mp3decoder memory */
+        hip = null;
+        return -1;
+      }
+      if (ret > 0)
+        break;
+    }
+    return ret;
+  }
+
+  private int lame_decode_frommemory(final float[] pcm_l, final float[] pcm_r, final MP3Data mp3data) {
+    int ret = 0;
+    int len = 0;
+    byte buf[] = new byte[1024];
+
+    /* first see if we still have data buffered in the decoder: */
+    ret = -1;
+    ret = mpg.hip_decode1_headers(hip, buf, len, pcm_l, pcm_r, mp3data, new FrameSkip());
+    if (ret != 0)
+      return ret;
+
+    /* read until we get a valid output frame */
+    while (true) {
+//      try {
+//        len = fd.read(buf, 0, 1024);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return -1;
+//      }
+      len = 1024;
+      if (inMemoryStoredData.length < inMemoryLoc + len) {
+        len = inMemoryStoredData.length - inMemoryLoc;
+      }
+      buf = Arrays.copyOfRange(inMemoryStoredData, inMemoryLoc, inMemoryLoc + len);
+      inMemoryLoc += len;
+      if (len <= 0) {
+        /* we are done reading the file, but check for buffered data */
+        ret = mpg.hip_decode1_headers(hip, buf, 0, pcm_l, pcm_r,
+                mp3data, new FrameSkip());
+        if (ret <= 0) {
+          mpg.hip_decode_exit(hip);
+          /* release mp3decoder memory */
+          hip = null;
+          return -1; /* done with file */
+        }
+        break;
+      }
+
+      ret = mpg.hip_decode1_headers(hip, buf, len, pcm_l, pcm_r, mp3data, new FrameSkip());
+      if (ret == -1) {
+        mpg.hip_decode_exit(hip);
+        /* release mp3decoder memory */
         hip = null;
         return -1;
       }

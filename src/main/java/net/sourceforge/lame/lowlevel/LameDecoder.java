@@ -65,6 +65,63 @@ public class LameDecoder {
         .getInNumChannels() <= 2);
   }
 
+  public LameDecoder(final byte[] mp3Data) {
+    // Create Decoder
+    lame = new Lame();
+    // Set parameters
+    lame.getFlags().setWriteId3tagAutomatic(false);
+    // Analyze parameters and set more internal options accordingly
+    lame.initParams();
+
+    lame.getParser().setInputFormat(GetAudio.SoundFileFormat.sf_mp3);
+
+    final FrameSkip frameSkip = new FrameSkip();
+
+    lame.getAudio().initInData(lame.getFlags(), mp3Data, frameSkip);
+
+    int skipStart = 0;
+    int skipEnd = 0;
+
+    if (lame.getParser().silent < 10)
+      System.out.printf("\rinput: %s data buffer (%g kHz, %d channel%s, ",
+              mp3Data.length > 26 ? "\n\t" : "  ", lame.getFlags()
+                      .getInSampleRate() / 1.e3, lame.getFlags()
+                      .getInNumChannels(), lame.getFlags()
+                      .getInNumChannels() != 1 ? "s" : "");
+
+    if (frameSkip.getEncoderDelay() > -1
+            || frameSkip.getEncoderPadding() > -1) {
+      if (frameSkip.getEncoderDelay() > -1)
+        skipStart = frameSkip.getEncoderDelay() + 528 + 1;
+      if (frameSkip.getEncoderPadding() > -1)
+        skipEnd = frameSkip.getEncoderPadding() - (528 + 1);
+    } else {
+      skipStart = lame.getFlags().getEncoderDelay() + 528 + 1;
+    }
+    System.out.printf("MPEG-%d%s Layer %s", 2 - lame.getFlags()
+                    .getMpegVersion(),
+            lame.getFlags().getOutSampleRate() < 16000 ? ".5" : "", "III");
+
+    System.out.printf(")\noutput: (16 bit, Microsoft WAVE)\n");
+
+    if (skipStart > 0)
+      System.out.printf(
+              "skipping initial %d samples (encoder+decoder delay)\n",
+              skipStart);
+    if (skipEnd > 0)
+      System.out
+              .printf("skipping final %d samples (encoder padding-decoder delay)\n",
+                      skipEnd);
+
+    final int totalFrames = lame.getParser().getMp3InputData()
+            .getNumSamples()
+            / lame.getParser().getMp3InputData().getFrameSize();
+    lame.getParser().getMp3InputData().setTotalFrames(totalFrames);
+
+    assert (lame.getFlags().getInNumChannels() >= 1 && lame.getFlags()
+            .getInNumChannels() <= 2);
+  }
+
   public final boolean decode(final ByteBuffer sampleBuffer) {
     final float buffer[][] = new float[2][1152];
     final LameGlobalFlags flags = lame.getFlags();
