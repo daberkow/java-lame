@@ -37,9 +37,8 @@ public class LameDecoderTest extends AbstractLameTest {
   @Test
   public void shouldConvertMp3ToWave() throws IOException, URISyntaxException {
     // given
-    File mp3TestFile = new File("C:\\Users\\Dan\\Downloads\\ADV5671687285.mp3");
-//    URL mp3TestFileUrl = LameDecoderTest.class.getResource("/test.mp3");
-//    File mp3TestFile = new File(mp3TestFile);
+    URL mp3TestFileUrl = LameDecoderTest.class.getResource("/test.mp3");
+    File mp3TestFile = new File(mp3TestFileUrl.toURI());
 
     // when
     byte[] wavBytes = decodeFromMp3(mp3TestFile);

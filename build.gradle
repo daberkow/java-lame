@@ -35,6 +35,8 @@ publishing {
 
 test {
   useJUnitPlatform()
+  minHeapSize = "512m" // initial heap size
+  maxHeapSize = "2048m" // maximum heap size
 }
 
 repositories {
