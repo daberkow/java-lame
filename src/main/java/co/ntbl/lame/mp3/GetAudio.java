@@ -1224,7 +1224,7 @@ public class GetAudio {
 
   private int lame_decode_initData(byte[] dataIn,
                                    final MP3Data mp3data, final FrameSkip enc) {
-    byte buf[] = new byte[100];
+    byte buf[];
     float[] pcm_l = new float[1152], pcm_r = new float[1152];
     boolean freeformat = false;
 
@@ -1234,15 +1234,8 @@ public class GetAudio {
     hip = mpg.hip_decode_init();
 
     int len = 4;
-//    try {
-//      fd.readFully(buf, 0, len);
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//      return -1; /* failed */
-//    }
     buf = Arrays.copyOf(dataIn, len);
     inMemoryLoc = 0 + len;
-    System.out.println("Pointer: " + inMemoryLoc);
     if (buf[0] == 'I' && buf[1] == 'D' && buf[2] == '3') {
       if (parse.silent < 10) {
         System.out
@@ -1250,52 +1243,22 @@ public class GetAudio {
                         + "Be aware that the ID3 tag is currently lost when transcoding.");
       }
       len = 6;
-//      try {
-//        fd.readFully(buf, 0, len);
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//        return -1; /* failed */
-//      }
       buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + len);
       inMemoryLoc += len;
-      System.out.println("Pointer: " + inMemoryLoc);
-//      buf = Arrays.copyOf(dataIn, len);
       buf[2] &= 127;
       buf[3] &= 127;
       buf[4] &= 127;
       buf[5] &= 127;
       len = (((((buf[2] << 7) + buf[3]) << 7) + buf[4]) << 7) + buf[5];
-      System.out.println("Skipping: " + len);
-//      try {
-//        fd.skipBytes(len);
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//        return -1; /* failed */
-//      }
       inMemoryLoc += len;
 
       len = 4;
-//      try {
-//        fd.readFully(buf, 0, len);
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//        return -1; /* failed */
-//      }
       buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + len);
       inMemoryLoc += len;
-      System.out.println("Pointer: " + inMemoryLoc);
     }
     if (check_aid(buf)) {
-      System.out.println(buf);
-//      try {
-//        fd.readFully(buf, 0, 2);
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//        return -1; /* failed */
-//      }
       buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + 2);
       inMemoryLoc += 2;
-      System.out.println("Pointer: " + inMemoryLoc);
       int aid_header = (buf[0] & 0xff) + 256 * (buf[1] & 0xff);
       if (parse.silent < 10) {
         System.out.printf("Album ID found.  length=%d \n", aid_header);
@@ -1309,44 +1272,17 @@ public class GetAudio {
 //      }
       inMemoryLoc = inMemoryLoc + (aid_header - 6);
       /* read 4 more bytes to set up buffer for MP3 header check */
-//      try {
-//        fd.readFully(buf, 0, len);
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//        return -1; /* failed */
-//      }
       buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + len);
       inMemoryLoc += len;
-      System.out.println("Pointer: " + inMemoryLoc);
-    } else {
-      System.out.println("Skipped checkaid");
     }
     len = 4;
     while (!is_syncword_mp123(buf)) {
-      for (byte single : buf) {
-        System.out.print(String.valueOf(single));
-      }
-      System.out.println(buf.length);
       int i;
       for (i = 0; i < len - 1; i++)
         buf[i] = buf[i + 1];
-//      try {
-//        fd.readFully(buf, len - 1, 1);
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//        return -1; /* failed */
-//      }
-      System.out.println("pre Pointer: " + inMemoryLoc);
-      System.out.println("offset: " + (len - 1) + " len " + 1);
       buf[(len - 1)] = dataIn[inMemoryLoc];
-//      buf = Arrays.copyOfRange(dataIn, loc + (len - 1), loc + (len - 1) + 1);
-      for (byte single : buf) {
-        System.out.print(String.valueOf(single));
-      }
       inMemoryLoc += 1;
-      System.out.println("Pointer: " + inMemoryLoc);
     }
-    System.out.println("Out of loop");
     if ((buf[2] & 0xf0) == 0) {
       if (parse.silent < 10) {
         System.out.println("Input file is freeformat.");
@@ -1377,7 +1313,6 @@ public class GetAudio {
 //      }
       buf = Arrays.copyOfRange(dataIn, inMemoryLoc, inMemoryLoc + buf.length);
       inMemoryLoc += buf.length;
-      System.out.println("Pointer: " + inMemoryLoc);
       ret = mpg.hip_decode1_headers(hip, buf, buf.length, pcm_l, pcm_r,
               mp3data, enc);
       if (-1 == ret)

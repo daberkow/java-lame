@@ -53,7 +53,7 @@ public class LameDecoderTest extends AbstractLameTest {
   @Test
   public void shouldConvertMp3ToWaveInMem() throws IOException, URISyntaxException {
     // given
-    File mp3TestFile = new File("./test_assets/776.mp3");
+    File mp3TestFile = new File("./test_assets/house.mp3");
 
     LameDecoder decoder = new LameDecoder(Files.readAllBytes(mp3TestFile.toPath()));
 
