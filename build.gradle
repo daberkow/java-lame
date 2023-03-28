@@ -2,9 +2,10 @@ plugins {
   id 'java'
   id 'maven-publish'
   id 'idea'
+  id "com.github.ben-manes.versions" version "0.46.0"
 }
 
-version = '3.98.4'
+version = '1.0.0'
 
 task sourcesJar(type: Jar, dependsOn: classes) {
   archiveClassifier.set("sources")
@@ -18,14 +19,14 @@ jar {
   from "README.md"
 
   manifest {
-    attributes 'Main-Class': 'net.sourceforge.lame.mp3.Main'
+    attributes 'Main-Class': 'co.ntbl.lame.mp3.Main'
   }
 }
 
 publishing {
   publications {
     maven(MavenPublication) {
-      groupId = 'net.sourceforge.lame'
+      groupId = 'co.ntbl.lame'
       artifactId = 'lame'
 
       from components.java
@@ -36,7 +37,7 @@ publishing {
 test {
   useJUnitPlatform()
   minHeapSize = "512m" // initial heap size
-  maxHeapSize = "2048m" // maximum heap size
+  maxHeapSize = "4096m" // maximum heap size
 }
 
 repositories {
@@ -44,6 +45,6 @@ repositories {
 }
 
 dependencies {
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
 }

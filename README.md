@@ -1,6 +1,6 @@
-# Java LAME
+# Java LAME - daberkow edition
 This java port of LAME 3.98.4 was created by Ken Händel for his 'jump3r - Java Unofficial MP3 EncodeR' project:
-http://sourceforge.net/projects/jsidplay2/
+http://sourceforge.net/projects/jsidplay2/, then modified by daberkow to support in memory mp3 conversions.
 
 Original sources by the authors of LAME: http://www.sourceforge.net/projects/lame
 
@@ -15,7 +15,7 @@ To create a JAR file, you may start the gradle build process with the included g
 The resulting library is then to be found in the following directory:
 
     ./build/libs/
-    
+
 You can find an already built JAR file in the releases: https://github.com/nwaldispuehl/java-lame/releases
 
 ## How to publish artifact to local Maven repository for the use in Maven projects
