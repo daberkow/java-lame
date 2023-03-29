@@ -109,7 +109,7 @@ publishing {
                 url = 'https://github.com/daberkow/java-lame'
                 licenses {
                     license {
-                        name = 'MIT License'
+                        name = 'LGPL'
                         url = 'https://github.com/daberkow/java-lame/blob/main/LICENSE'
                         distribution = 'repo'
                     }
