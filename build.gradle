@@ -88,8 +88,6 @@ signing {
 // MAVEN
 //
 
-tasks.named("publishMavenJavaPublicationToOSSRHRepository").configure { dependsOn("signMavenPublication") }
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
