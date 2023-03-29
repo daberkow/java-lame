@@ -3,8 +3,8 @@ package co.ntbl.lame.mp3;
 /**
  * tries to find out how many bits are needed for each granule and channel
  * to get an acceptable quantization. An appropriate bitrate will then be
- * choosed for quantization. rh 8/99
- * <p/>
+ * chosen for quantization. rh 8/99
+ *
  * Robert Hegemann 2000-09-06 rewrite
  *
  * @author Ken

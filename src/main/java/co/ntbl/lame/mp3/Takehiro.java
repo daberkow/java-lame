@@ -1038,7 +1038,7 @@ public class Takehiro {
   /**
    * Also counts the number of bits to encode the scalefacs but for MPEG 2
    * Lower sampling frequencies (24, 22.05 and 16 kHz.)
-   * <p/>
+   *
    * This is reverse-engineered from section 2.4.3.2 of the MPEG2 IS,
    * "Audio Decoding Layer III"
    */

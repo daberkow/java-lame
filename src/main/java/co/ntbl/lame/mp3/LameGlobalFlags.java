@@ -314,7 +314,7 @@ public class LameGlobalFlags {
   /**
    * Output: Set sampling rate.
    *
-   * @param inSampleRate sampling rate in Hz (default=44100 - 44.1 kHz)
+   * @param outSampleRate sampling rate in Hz (default=44100 - 44.1 kHz)
    */
   public void setOutSampleRate(int outSampleRate) {
     this.outSampleRate = outSampleRate;
@@ -390,7 +390,7 @@ public class LameGlobalFlags {
 
   /**
    * true (default) writes ID3 tags, false not.
-   * <p/>
+   *
    * Turn off automatic writing of ID3 tag data into mp3 stream we have to
    * call it before 'Lame.initParams', because that function would spit out
    * ID3v2 tag data.
@@ -429,7 +429,7 @@ public class LameGlobalFlags {
   /**
    * Set VBR control (variable bit rate).
    *
-   * @param VBR control
+   * @param vBR control
    */
   public final void setVBR(final VbrMode vBR) {
     VBR = vBR;

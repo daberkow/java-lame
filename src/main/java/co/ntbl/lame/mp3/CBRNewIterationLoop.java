@@ -2,7 +2,6 @@ package co.ntbl.lame.mp3;
 
 /**
  * author/date??
- * <p/>
  * encodes one frame of MP3 data with constant bitrate
  *
  * @author Ken

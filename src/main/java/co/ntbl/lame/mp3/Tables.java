@@ -417,11 +417,11 @@ public interface Tables {
   };
 
   /**
-   * <CODE>
+   * {@code
    * for (i = 0; i < 16*16; i++) {
    * largetbl[i] = ((ht[16].hlen[i]) << 16) + ht[24].hlen[i];
    * }
-   * </CODE>
+   * }
    */
   static final int largetbl[] = {
       0x010004, 0x050005, 0x070007, 0x090008, 0x0a0009, 0x0a000a, 0x0b000a, 0x0b000b,
@@ -458,11 +458,11 @@ public interface Tables {
       0x0d0009, 0x0d0009, 0x0d0009, 0x0d000a, 0x0d000a, 0x0d000a, 0x0d000a, 0x0a0006
   };
   /**
-   * <CODE>
+   * {@code
    * for (i = 0; i < 3*3; i++) {
    * table23[i] = ((ht[2].hlen[i]) << 16) + ht[3].hlen[i];
    * }
-   * </CODE>
+   * }
    */
   static final int table23[] = {
       0x010002, 0x040003, 0x070007,
@@ -471,11 +471,11 @@ public interface Tables {
   };
 
   /**
-   * <CODE>
+   * {@code
    * for (i = 0; i < 4*4; i++) {
    * table56[i] = ((ht[5].hlen[i]) << 16) + ht[6].hlen[i];
    * }
-   * </CODE>
+   * }
    */
   static final int table56[] = {
       0x010003, 0x040004, 0x070006, 0x080008, 0x040004, 0x050004, 0x080006, 0x090007,

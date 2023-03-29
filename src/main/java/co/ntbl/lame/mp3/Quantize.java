@@ -45,7 +45,7 @@ public class Quantize {
   }
 
   /**
-   * convert from L/R <. Mid/Side
+   * convert from L/R . Mid/Side
    */
   public final void ms_convert(final IIISideInfo l3_side, final int gr) {
     for (int i = 0; i < 576; ++i) {
@@ -818,20 +818,18 @@ public class Quantize {
   }
 
   /**
-   * <PRE>
    * Function: The outer iteration loop controls the masking conditions
    * of all scalefactorbands. It computes the best scalefac and
    * global gain. This module calls the inner iteration loop
-   * <p/>
+   *
    * mt 5/99 completely rewritten to allow for bit reservoir control,
    * mid/side channels with L/R or mid/side masking thresholds,
-   * and chooses best quantization instead of last quantization when
+   * and chooses the best quantization instead of last quantization when
    * no distortion free quantization can be found.
-   * <p/>
+   *
    * added VBR support mt 5/99
-   * <p/>
+   *
    * some code shuffle rh 9/00
-   * </PRE>
    *
    * @param l3_xmin   allowed distortion
    * @param xrpow     coloured magnitudes of spectral
@@ -1023,7 +1021,7 @@ public class Quantize {
 
   /**
    * Robert Hegemann 2000-09-06
-   * <p/>
+   *
    * update reservoir status after FINAL quantization/bitrate
    */
   public final void iteration_finish_one(final LameInternalFlags gfc,
@@ -1142,7 +1140,7 @@ public class Quantize {
 
   /**
    * Robert Hegemann 2000-09-05
-   * <p/>
+   *
    * calculates * how many bits are available for analog silent granules * how
    * many bits to use for the lowest allowed bitrate * how many bits each
    * bitrate would provide
@@ -1175,11 +1173,11 @@ public class Quantize {
   /**
    * <PRE>
    * 2000-09-04 Robert Hegemann
-   * <p/>
+   *
    * * converts LR to MS coding when necessary
    * * calculates allowed/adjusted quantization noise amounts
    * * detects analog silent frames
-   * <p/>
+   *
    * some remarks:
    * - lower masking depending on Quality setting
    * - quality control together with adjusted ATH MDCT scaling
@@ -1342,7 +1340,7 @@ public class Quantize {
 
   /**
    * calculates target bits for ABR encoding
-   * <p/>
+   *
    * mt 2000/05/31
    */
   public final void calc_target_bits(final LameGlobalFlags gfp, float pe[][],

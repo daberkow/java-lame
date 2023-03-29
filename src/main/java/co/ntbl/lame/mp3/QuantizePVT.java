@@ -29,21 +29,21 @@ package co.ntbl.lame.mp3;
 public class QuantizePVT {
 
   /**
-   * ix always <= 8191+15. see count_bits()
+   * {@code ix always <= 8191+15. see count_bits()}
    */
   public static final int IXMAX_VAL = 8206;
   private static final int PRECALC_SIZE = (IXMAX_VAL + 2);
   public float pow43[] = new float[PRECALC_SIZE];
   public float adj43[] = new float[PRECALC_SIZE];
   /**
-   * <CODE>
+   * {@code
    * minimum possible number of
    * -cod_info.global_gain + ((scalefac[] + (cod_info.preflag ? pretab[sfb] : 0))
    * << (cod_info.scalefac_scale + 1)) + cod_info.subblock_gain[cod_info.window[sfb]] * 8;
-   * <p/>
+   *
    * for long block, 0+((15+3)<<2) = 18*4 = 72
    * for short block, 0+(15<<2)+7*8 = 15*4+56 = 116
-   * </CODE>
+   * }
    */
   public static final int Q_MAX2 = 116;
   public static final int LARGE_BITS = 100000;
@@ -62,7 +62,7 @@ public class QuantizePVT {
    * The following table is used to implement the scalefactor partitioning for
    * MPEG2 as described in section 2.4.3.2 of the IS. The indexing corresponds
    * to the way the tables are presented in the IS:
-   * <p/>
+   *
    * [table_number][row_in_table][column of nr_of_sfb]
    */
   public final int nr_of_sfb_block[][][] = new int[][][]{
@@ -520,7 +520,7 @@ public class QuantizePVT {
   /**
    * Calculate the allowed distortion for each scalefactor band, as determined
    * by the psychoacoustic model. xmin(sb) = ratio(sb) * en(sb) / bw(sb)
-   * <p/>
+   *
    * returns number of sfb's with energy > ATH
    */
   public final int calc_xmin(final LameGlobalFlags gfp,
@@ -948,7 +948,7 @@ public class QuantizePVT {
 
   /**
    * updates plotting data for a whole frame
-   * <p/>
+   *
    * Robert Hegemann 2000-10-21
    */
   public final void set_frame_pinfo(final LameGlobalFlags gfp,

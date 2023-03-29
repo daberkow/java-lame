@@ -64,7 +64,7 @@ public class LameEncoder {
   public static final int BITRATE_AUTO = -1;
   /**
    * Constant bit rate.
-   * <p/>
+   *
    * Note:
    * In VBR mode, bit rate is ignored.
    */
@@ -209,8 +209,8 @@ public class LameEncoder {
   /**
    * Returns the buffer needed pcm buffer size. The passed parameter is a
    * wished buffer size. The implementation of the encoder may return a lower
-   * or higher buffer size. The encoder must be initalized (i.e. not closed)
-   * at this point. A return value of <0 denotes an error.
+   * or higher buffer size. The encoder must be initialized (i.e. not closed)
+   * at this point. A return value of 0 denotes an error.
    */
   public final int getPCMBufferSize() {
     return DEFAULT_PCM_BUFFER_SIZE;

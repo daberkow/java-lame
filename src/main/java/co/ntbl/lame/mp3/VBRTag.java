@@ -35,7 +35,7 @@ import java.util.Arrays;
  * <LI>bytes total number of bytes in the bitstream
  * <LI>toc table of contents
  * </UL>
- * <p/>
+ *
  * toc (table of contents) gives seek points for random access.<BR>
  * The ith entry determines the seek point for i-percent duration.<BR>
  * seek point in bytes = (toc[i]/256.0) * total_bitstream_bytes<BR>
@@ -354,7 +354,6 @@ public class VBRTag {
    * Get VBR tag information
    *
    * @param buf    header to analyze
-   * @param bufPos offset into the header
    * @return VBR tag data
    */
   public final VBRTagData getVbrTag(final byte[] buf) {

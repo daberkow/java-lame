@@ -528,9 +528,9 @@ public class Lame {
   /**
    * Used to find table index when we need bitrate-based values determined
    * using tables
-   * <p/>
+   *
    * bitrate in kbps
-   * <p/>
+   *
    * Gabriel Bouvigne 2002-11-03
    */
   public final int nearestBitrateFullIndex(final int bitrate) {
@@ -838,38 +838,37 @@ public class Lame {
    * *****************************************************************
    * initialize internal params based on data in gf (globalflags struct filled
    * in by calling program)
-   * <p/>
+   *
    * OUTLINE:
-   * <p/>
    * We first have some complex code to determine bitrate, output samplerate
    * and mode. It is complicated by the fact that we allow the user to set
-   * some or all of these parameters, and need to determine best possible
+   * some or all of these parameters, and need to determine the best possible
    * values for the rest of them:
-   * <p/>
+   *
    * 1. set some CPU related flags 2. check if we are mono.mono, stereo.mono
    * or stereo.stereo 3. compute bitrate and output samplerate: user may have
-   * set compression ratio user may have set a bitrate user may have set a
+   * set compression ratio user may have set a bitrate user may have set an
    * output samplerate 4. set some options which depend on output samplerate
    * 5. compute the actual compression ratio 6. set mode based on compression
    * ratio
-   * <p/>
+   *
    * The remaining code is much simpler - it just sets options based on the
-   * mode & compression ratio:
-   * <p/>
+   * mode and compression ratio:
+   *
    * set allow_diff_short based on mode select lowpass filter based on
-   * compression ratio & mode set the bitrate index, and min/max bitrates for
+   * compression ratio and mode set the bitrate index, and min/max bitrates for
    * VBR modes disable VBR tag if it is not appropriate initialize the
    * bitstream initialize scalefac_band data set sideinfo_len (based on
    * channels, CRC, out_samplerate) write an id3v2 tag into the bitstream
    * write VBR tag into the bitstream set mpeg1/2 flag estimate the number of
    * frames (based on a lot of data)
-   * <p/>
+   *
    * now we set more flags: nspsytune: see code VBR modes see code CBR/ABR see
    * code
-   * <p/>
+   *
    * Finally, we set the algorithm flags based on the gfp.quality value
    * lame_init_qval(gfp);
-   * <p/>
+   *
    * ******************************************************************
    */
   public final int initParams() {
@@ -1489,7 +1488,7 @@ public class Lame {
   /**
    * Prints some selected information about the coding parameters via the
    * macro command MSGF(), which is currently mapped to lame_errorf (reports
-   * via a error function?), which is a printf-like function for <stderr>.
+   * via an error function?), which is a printf-like function for stderr.
    */
   public final void lame_print_config() {
     final LameInternalFlags gfc = gfp.internal_flags;
@@ -2256,18 +2255,18 @@ public class Lame {
    * <PRE>
    * histogram of used bitrate indexes:
    * One has to weight them to calculate the average bitrate in kbps
-   * <p/>
+   *
    * bitrate indices:
    * there are 14 possible bitrate indices, 0 has the special meaning
    * "free format" which is not possible to mix with VBR and 15 is forbidden
    * anyway.
-   * <p/>
+   *
    * stereo modes:
    * 0: LR   number of left-right encoded frames
    * 1: LR-I number of left-right and intensity encoded frames
    * 2: MS   number of mid-side encoded frames
    * 3: MS-I number of mid-side and intensity encoded frames
-   * <p/>
+   *
    * 4: number of encoded frames
    * </PRE>
    */

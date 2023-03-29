@@ -29,22 +29,22 @@ package co.ntbl.lame.mp3;
 public class Encoder {
   /**
    * ENCDELAY The encoder delay.
-   * <p/>
+   *
    * Minimum allowed is MDCTDELAY (see below)
-   * <p/>
+   *
    * The first 96 samples will be attenuated, so using a value less than 96
    * will result in corrupt data for the first 96-ENCDELAY samples.
-   * <p/>
+   *
    * suggested: 576 set to 1160 to sync with FhG.
    */
   public static final int ENCDELAY = 576;
   /**
    * make sure there is at least one complete frame after the last frame
    * containing real data
-   * <p/>
-   * Using a value of 288 would be sufficient for a a very sophisticated
+   *
+   * Using a value of 288 would be sufficient for a very sophisticated
    * decoder that can decode granule-by-granule instead of frame by frame. But
-   * lets not assume this, and assume the decoder will not decode frame N
+   * let's not assume this, and assume the decoder will not decode frame N
    * unless it also has data for frame N+1
    */
   public static final int POSTDELAY = 1152;
@@ -112,10 +112,10 @@ public class Encoder {
   public static final int STOP_TYPE = 3;
   /**
    * <PRE>
-   * Mode Extention:
+   * Mode Extension:
    * When we are in stereo mode, there are 4 possible methods to store these
    * two channels. The stereo modes -m? are using a subset of them.
-   * <p/>
+   *
    * -ms: MPG_MD_LR_LR
    * -mj: MPG_MD_LR_LR and MPG_MD_MS_LR
    * -mf: MPG_MD_MS_LR

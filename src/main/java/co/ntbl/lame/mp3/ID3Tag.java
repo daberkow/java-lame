@@ -235,12 +235,12 @@ public class ID3Tag {
    * <PRE>
    * Some existing options for ID3 tag can be specified by --tv option
    * as follows.
-   * --tt <value>, --tv TIT2=value
-   * --ta <value>, --tv TPE1=value
-   * --tl <value>, --tv TALB=value
-   * --ty <value>, --tv TYER=value
-   * --tn <value>, --tv TRCK=value
-   * --tg <value>, --tv TCON=value
+   * --tt value, --tv TIT2=value
+   * --ta value, --tv TPE1=value
+   * --tl value, --tv TALB=value
+   * --ty value, --tv TYER=value
+   * --tn value, --tv TRCK=value
+   * --tg value, --tv TCON=value
    * (although some are not exactly same)
    * </PRE>
    */
