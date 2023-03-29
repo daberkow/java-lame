@@ -521,7 +521,7 @@ public class QuantizePVT {
    * Calculate the allowed distortion for each scalefactor band, as determined
    * by the psychoacoustic model. xmin(sb) = ratio(sb) * en(sb) / bw(sb)
    *
-   * returns number of sfb's with energy > ATH
+   * {@code returns number of sfb's with energy > ATH }
    */
   public final int calc_xmin(final LameGlobalFlags gfp,
                              final III_psy_ratio ratio, final GrInfo cod_info,
@@ -720,7 +720,7 @@ public class QuantizePVT {
   }
 
   /**
-   * <PRE>
+   * {@code
    * -oo dB  =>  -1.00
    * - 6 dB  =>  -0.97
    * - 3 dB  =>  -0.80
@@ -732,7 +732,7 @@ public class QuantizePVT {
    * + 3 dB  =>  +1.68
    * + 6 dB  =>  +3.69
    * +10 dB  =>  +6.45
-   * </PRE>
+   * }
    */
   public final int calc_noise(final GrInfo cod_info,
                               final float[] l3_xmin, final float[] distort,
