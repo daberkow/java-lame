@@ -51,21 +51,10 @@ jar {
     }
 }
 
-publishing {
-  publications {
-    maven(MavenPublication) {
-      groupId = 'co.ntbl.lame'
-      artifactId = 'lame'
-
-      from components.java
-    }
-  }
-}
-
 test {
   useJUnitPlatform()
   minHeapSize = "512m" // initial heap size
-  maxHeapSize = "4096m" // maximum heap size
+  maxHeapSize = "2048m" // maximum heap size
 }
 
 repositories {
@@ -94,9 +83,12 @@ signing {
     useInMemoryPgpKeys(signingKey, signingPassword)
     sign publishing.publications
 }
+
 //
 // MAVEN
 //
+
+tasks.named("publishMavenJavaPublicationToOSSRHRepository").configure { dependsOn("signMavenPublication") }
 
 publishing {
     publications {
