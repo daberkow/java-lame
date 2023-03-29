@@ -1,17 +1,17 @@
 # Java LAME - daberkow edition
-This java port of LAME 3.98.4 was created by Ken Händel for his 'jump3r - Java Unofficial MP3 EncodeR' project:
+This java port (https://github.com/nwaldispuehl/java-lame) of LAME 3.98.4 was created by Ken Händel for his 'jump3r - Java Unofficial MP3 EncodeR' project:
 http://sourceforge.net/projects/jsidplay2/, then modified by daberkow to support in memory mp3 conversions.
 
 Original sources by the authors of LAME: http://www.sourceforge.net/projects/lame
 
 The code is - as the original - licensed under the LGPL (see LICENSE).
 
-## How to build 
+## How to build
 
 To create a JAR file, you may start the gradle build process with the included gradle wrapper:
 
     $ ./gradlew jar
-    
+
 The resulting library is then to be found in the following directory:
 
     ./build/libs/
@@ -26,7 +26,7 @@ To store the artifact in the local Maven repository (e.g. `~/.m2/repository/`) u
 
 It is then present at the expected location, e.g.:
 
-    $ ls ~/.m2/repository/net/sourceforge/lame/lame/3.98.4    
+    $ ls ~/.m2/repository/net/sourceforge/lame/lame/3.98.4
     lame-3.98.4.jar  lame-3.98.4.module  lame-3.98.4.pom
 
 and can be used in local Maven projects with this signature:
@@ -54,7 +54,7 @@ After having created a JAR file, you certainly can run it as a command line appl
 To see the creation of a MP3 file in action one can run the test class `LameEncoderTest.java`:
 
     $ ./gradlew check
-    
+
 It takes the `src/test/resources/test.wav` file as input and writes the converted data into `build/test.mp3`.
 
 
@@ -62,7 +62,7 @@ It takes the `src/test/resources/test.wav` file as input and writes the converte
 
 ### WAV/PCM to MP3
 
-To convert a WAV/PCM byte array to an MP3 byte array, you may use Ken Händels ```LameEncoder``` which offers the 
+To convert a WAV/PCM byte array to an MP3 byte array, you may use Ken Händels ```LameEncoder``` which offers the
 following convenience method for converting chunks of such byte buffer:
 
 ```

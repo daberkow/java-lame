@@ -2,25 +2,53 @@ plugins {
   id 'java'
   id 'maven-publish'
   id 'idea'
+  id 'signing'
   id "com.github.ben-manes.versions" version "0.46.0"
 }
 
 version = '1.0.0'
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-  archiveClassifier.set("sources")
-  from sourceSets.main.allSource
-  from "LICENSE"
-  from "README.md"
+sourceCompatibility = 11
+targetCompatibility = 11
+
+rootProject.description = 'Modified LAME library to support in memory MP3 conversion.'
+group = 'co.ntbl'
+
+tasks.register('createProperties') {
+    doLast {
+        new File("$projectDir/src/main/resources/version.properties").withWriter { w ->
+            Properties p = new Properties()
+            p['version'] = project.version.toString()
+            p.store w, null
+        }
+    }
+}
+
+classes {
+    dependsOn createProperties
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 jar {
-  from "LICENSE"
-  from "README.md"
-
-  manifest {
-    attributes 'Main-Class': 'co.ntbl.lame.mp3.Main'
-  }
+    manifest {
+        attributes(
+                "Class-Path": "co.ntbl.lame",
+                "Main-Class": "co.ntbl.lame.mp3.Main",
+                "Implementation-Title": project.name,
+                "Implementation-Version": version,
+                "Implementation-Vendor": "Daniel Berkowitz",
+                "Build-Jdk": org.gradle.internal.jvm.Jvm.current(),
+                "Gradle-Version": GradleVersion.current().toString()
+        )
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 publishing {
@@ -47,4 +75,72 @@ repositories {
 dependencies {
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+}
+
+// To accept gradle scans and publish them
+if (hasProperty('buildScan')) {
+    buildScan {
+        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+        termsOfServiceAgree = 'yes'
+    }
+}
+
+ext.admin = System.getenv("MAVEN_USERNAME")
+
+signing {
+    required { admin }
+    def signingKey = System.getenv("GPG_SIGNING_KEY")
+    def signingPassword = System.getenv("GPG_SIGNING_PASSPHRASE")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications
+}
+//
+// MAVEN
+//
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'lame'
+                description = rootProject.description
+                url = 'https://github.com/daberkow/java-lame'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://github.com/daberkow/java-lame/blob/main/LICENSE'
+                        distribution = 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'daberkow'
+                        name = 'Daniel Berkowitz'
+                        email = 'dansberkowitz@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/daberkow/java-lame.git'
+                    developerConnection = 'scm:git:ssh://git@github.com:daberkow/java-lame.git'
+                    url = 'https://github.com/daberkow/java-lame'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "OSSRH"
+            if (admin) {
+                credentials {
+                    username = System.getenv("MAVEN_USERNAME")
+                    password = System.getenv("MAVEN_PASSWORD")
+                }
+            }
+            def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+            def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
 }
